@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <style>
+        .container {
+            width: 80%;
+            border: 2px solid black;
+            height: 80vh;
+            margin: auto;
+        }
+
+        .message {
+            border: 1px solid greenyellow;
+            max-width: 40%;
+            padding: 10px 5px;
+            margin: 5px;
+            border-radius: 5px;
+        }
+
+        .left {
+            float: left;
+            clear: both;
+            background-color: aquamarine;
+        }
+
+        .right {
+            float: right;
+            background-color: aqua;
+            clear: both;
+        }
+
+        form {
+            display: block;
+            width: 80%;
+            margin: auto;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        form input {
+            border-radius: 10px;
+            width: 80%;
+            padding: 5px 5px;
+        }
+
+        form button {
+            border-radius: 10px;
+            width: 15%;
+            padding: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="message left">hello i am left</div>
+        <div class="message right">hello i am right</div>
+    </div>
+    <form action="">
+        <input type="text" name="" id="msg-inp">
+        <button type="submit">Send</button>
+    </form>
+
+    <script  src="/socket.io/socket.io.js"></script>
+    <script >
+        const socket = io();
+        console.log(socket)
+
+        const messageContainer = document.querySelector(".container");
+        const form = document.querySelector("form");
+        const messageInput = document.getElementById("msg-inp");
+        const audio = new Audio();
+
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const message = messageInput.value;
+            append(`You: ${message}`, 'right');
+            socket.emit('send', message);
+            messageInput.value = "";
+        });
+
+        const append = (message, position) => {
+            const messageElement = document.createElement("div");
+            messageElement.innerText = message;
+            messageElement.classList.add("message");
+            messageElement.classList.add(position);
+            messageContainer.append(messageElement);
+            if (position === "left") {
+                audio.play();
+            }
+            window.scrollTo(0,document.body.scrollHeight)
+
+        };
+
+        let name = prompt("Enter your name to join:");
+        socket.emit("new-user-joined", name);
+
+        socket.on("user-joined", (name) => {
+            append(`${name} joined the chat`, 'right');
+        });
+
+        socket.on("received", (data) => {
+            append(`${data.name}: ${data.message}`, 'left');
+        });
+
+        socket.on("left", (name) => {
+            append(`${name} left the chat`, 'left');
+        });
+        
+    </script>
+</body>
+</html>
